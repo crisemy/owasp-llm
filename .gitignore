@@ -13,8 +13,10 @@ htmlcov/
 # Data (Keep your JSON files!)
 data/*.json
 
-# Scripts
-scripts/
+# Scripts (keep executor and validation scripts)
+!scripts/executor.py
+!scripts/generate_test_cases.py
+!scripts/validate_coverage.py
 
 # Docs
 docs/

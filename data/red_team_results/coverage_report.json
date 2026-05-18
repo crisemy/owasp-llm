@@ -1,0 +1,217 @@
+{
+  "coverage": {
+    "all_categories_covered": true,
+    "total_test_cases": 116,
+    "categories": {
+      "LLM01": {
+        "category": "Prompt Injection",
+        "test_case_count": 15,
+        "subcategories": [
+          "api_response_injection",
+          "chained_injection",
+          "code_comment_injection",
+          "cross_model_recursive",
+          "data_format_abuse",
+          "direct_override",
+          "retrieved_doc_injection",
+          "search_result_injection",
+          "self_recursive",
+          "summary_injection",
+          "translation_hiding"
+        ],
+        "meets_minimum": true,
+        "has_specialized_validator": false,
+        "validator": "Base EvaluationEngine"
+      },
+      "LLM02": {
+        "category": "Insecure Output Handling",
+        "test_case_count": 13,
+        "subcategories": [
+          "html_in_markdown",
+          "image_injection",
+          "json_field_injection",
+          "json_type_confusion",
+          "link_injection",
+          "python_exec_output",
+          "shell_command_output",
+          "sql_injection_output",
+          "xss_via_output",
+          "yaml_deserialization"
+        ],
+        "meets_minimum": true,
+        "has_specialized_validator": false,
+        "validator": "Base EvaluationEngine"
+      },
+      "LLM03": {
+        "category": "Training Data Poisoning",
+        "test_case_count": 11,
+        "subcategories": [
+          "bias_injection",
+          "capability_degradation",
+          "multi_source_conflict",
+          "multimodal_backdoor",
+          "poisoned_document",
+          "ranking_manipulation",
+          "safety_degradation",
+          "source_impersonation",
+          "text_backdoor",
+          "train_eval_split"
+        ],
+        "meets_minimum": true,
+        "has_specialized_validator": true,
+        "validator": "PoisoningValidator"
+      },
+      "LLM04": {
+        "category": "Model Denial of Service",
+        "test_case_count": 11,
+        "subcategories": [
+          "burst_attack",
+          "complex_reasoning_bomb",
+          "context_padding",
+          "conversation_history_flood",
+          "large_context_flood",
+          "multi_turn_accumulation",
+          "nested_operation_storm",
+          "parallel_request_flood",
+          "recursive_expansion",
+          "sustained_load_attack",
+          "verbose_response_trigger"
+        ],
+        "meets_minimum": true,
+        "has_specialized_validator": false,
+        "validator": "Base EvaluationEngine"
+      },
+      "LLM05": {
+        "category": "Supply Chain Vulnerabilities",
+        "test_case_count": 12,
+        "subcategories": [
+          "api_gateway_bypass",
+          "backdoored_model",
+          "compromised_package_registry",
+          "data_exfiltration_dataset",
+          "impersonated_model",
+          "mislabeled_dataset",
+          "model_server_tampering",
+          "outdated_tokenizer",
+          "poisoned_public_dataset",
+          "storage_leak",
+          "tampered_weights",
+          "vulnerable_ml_library"
+        ],
+        "meets_minimum": true,
+        "has_specialized_validator": true,
+        "validator": "SupplyChainValidator"
+      },
+      "LLM06": {
+        "category": "Sensitive Information Disclosure",
+        "test_case_count": 12,
+        "subcategories": [
+          "confidence_leakage",
+          "conversation_history_leak",
+          "cross_session_leakage",
+          "direct_prompt_extraction",
+          "embedding_extraction",
+          "exact_memorization",
+          "indirect_prompt_extraction",
+          "membership_inference",
+          "partial_memorization",
+          "pii_extraction",
+          "prompt_fragment_leakage",
+          "training_pattern_reconstruction"
+        ],
+        "meets_minimum": true,
+        "has_specialized_validator": false,
+        "validator": "Base EvaluationEngine"
+      },
+      "LLM07": {
+        "category": "Insecure Plugin Design",
+        "test_case_count": 12,
+        "subcategories": [
+          "admin_action_via_plugin",
+          "command_injection_via_plugin",
+          "cross_resource_access",
+          "error_response_exploitation",
+          "fabricated_plugin_response",
+          "malicious_tool_selection",
+          "parameter_manipulation",
+          "path_traversal_via_plugin",
+          "read_write_escalation",
+          "response_injection",
+          "sql_injection_via_plugin",
+          "tool_chain_abuse"
+        ],
+        "meets_minimum": true,
+        "has_specialized_validator": true,
+        "validator": "PluginSecurityValidator"
+      },
+      "LLM08": {
+        "category": "Excessive Agency",
+        "test_case_count": 12,
+        "subcategories": [
+          "api_key_leakage",
+          "context_privilege_abuse",
+          "credential_forwarding",
+          "data_deletion_decision",
+          "financial_decision",
+          "permission_chaining",
+          "role_escalation",
+          "scope_violation",
+          "security_decision",
+          "token_exposure",
+          "unauthorized_deletion",
+          "unauthorized_transfer"
+        ],
+        "meets_minimum": true,
+        "has_specialized_validator": true,
+        "validator": "AgencyValidator"
+      },
+      "LLM09": {
+        "category": "Overreliance",
+        "test_case_count": 9,
+        "subcategories": [
+          "citation_hallucination",
+          "error_cascade",
+          "factual_hallucination_acceptance",
+          "numerical_hallucination",
+          "opinion_drift",
+          "self_reinforcing_hallucination",
+          "unreviewed_publication",
+          "unvalidated_code_deployment",
+          "unverified_data_entry"
+        ],
+        "meets_minimum": true,
+        "has_specialized_validator": true,
+        "validator": "OverrelianceValidator"
+      },
+      "LLM10": {
+        "category": "Model Theft",
+        "test_case_count": 9,
+        "subcategories": [
+          "checkpoint_theft",
+          "distillation_attack",
+          "memory_extraction",
+          "model_identification",
+          "provider_fingerprinting",
+          "side_channel_extraction",
+          "systematic_query_extraction",
+          "targeted_capability_extraction",
+          "version_detection"
+        ],
+        "meets_minimum": true,
+        "has_specialized_validator": true,
+        "validator": "ModelTheftDetector"
+      }
+    }
+  },
+  "validators": {
+    "SupplyChainValidator": true,
+    "PluginSecurityValidator": true,
+    "ModelTheftDetector": true,
+    "PoisoningValidator": true,
+    "AgencyValidator": true,
+    "OverrelianceValidator": true
+  },
+  "validation_errors": [],
+  "total_test_cases": 116,
+  "categories_covered": 10
+}

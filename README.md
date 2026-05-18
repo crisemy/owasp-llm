@@ -10,8 +10,8 @@ A comprehensive security testing framework implementing the OWASP Top 10 for Lar
 | Week 2 — LLM02 + LLM04 | Complete | Output handling, Model DoS — live API testing |
 | Week 3 — LLM05 + LLM07 + LLM10 | Complete | Supply chain, plugins, model theft — specialized validators |
 | Week 4 — LLM03 + LLM08 | Complete | Training poisoning, excessive agency — domain validators |
-| Week 5 — LLM09 + Integration | In Progress | Overreliance, methodology updates |
-| Week 6 — Architecture & Validation | Planned | Documentation, coverage validation |
+| Week 5 — LLM09 + Integration | Complete | Overreliance, methodology updates |
+| Week 6 — Architecture & Validation | In Progress | Documentation, coverage validation, release |
 
 ## Quick Start
 
@@ -334,6 +334,29 @@ python scripts/executor.py --target mock --category LLM09
 
 **Week 5 Test Results (Mock)**:
 - LLM09: 9/9 passed (ASR: 0.0%) [GREEN] — All overreliance controls effective
+
+### Week 6 — Architecture, Validation & Release
+
+Week 6 finalizes the module with coverage validation, architecture documentation, and release report:
+
+```powershell
+# Run coverage validation
+python scripts/validate_coverage.py
+
+# Run full test suite
+python scripts/executor.py --target mock --model test
+```
+
+**Validation Results**:
+- [PASS] 10/10 categories covered with 3+ test cases each
+- [PASS] 116 test cases valid against TestCase schema
+- [PASS] 6 specialized validators integrated
+- [PASS] Overall ASR 4.31% (GREEN)
+
+**Release Artifacts**:
+- `03_llm_security/09_release_report.md` — Full architecture and release documentation
+- `data/red_team_results/coverage_report.json` — Coverage validation matrix
+- `scripts/validate_coverage.py` — Automated coverage validation script
 
 ### Rollback Triggers
 
