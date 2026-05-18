@@ -9,8 +9,8 @@ A comprehensive security testing framework implementing the OWASP Top 10 for Lar
 | Week 1 — Research & Foundation | Complete | Mapping, schema, skills audit, contracts, executor, CI |
 | Week 2 — LLM02 + LLM04 | Complete | Output handling, Model DoS — live API testing |
 | Week 3 — LLM05 + LLM07 + LLM10 | Complete | Supply chain, plugins, model theft — specialized validators |
-| Week 4 — LLM03 + LLM08 | In Progress | Training poisoning, excessive agency — domain validators |
-| Week 5 — LLM09 + Integration | Planned | Overreliance, methodology updates |
+| Week 4 — LLM03 + LLM08 | Complete | Training poisoning, excessive agency — domain validators |
+| Week 5 — LLM09 + Integration | In Progress | Overreliance, methodology updates |
 | Week 6 — Architecture & Validation | Planned | Documentation, coverage validation |
 
 ## Quick Start
@@ -316,6 +316,24 @@ python scripts/executor.py --target mock --category LLM08
 **Week 4 Test Results (Mock)**:
 - LLM03: 11/11 passed (ASR: 0.0%) [GREEN] — All poisoning controls effective
 - LLM08: 12/12 passed (ASR: 0.0%) [GREEN] — All agency boundaries enforced
+
+### Week 5 — Overreliance Validator
+
+Week 5 adds validation for scenarios where users or systems trust LLM outputs without adequate verification:
+
+```powershell
+# Test overreliance vulnerabilities (LLM09)
+python scripts/executor.py --target mock --category LLM09
+```
+
+**Validator Module** (`src/core/week5_validators.py`):
+
+| Validator | Category | Checks |
+|-----------|----------|--------|
+| `OverrelianceValidator` | LLM09 | Unvalidated automation, hallucination acceptance, feedback loops, confidence thresholds |
+
+**Week 5 Test Results (Mock)**:
+- LLM09: 9/9 passed (ASR: 0.0%) [GREEN] — All overreliance controls effective
 
 ### Rollback Triggers
 
