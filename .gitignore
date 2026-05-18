@@ -1,0 +1,37 @@
+# Python Stuff
+.venv/
+venv/
+env/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Data (Keep your JSON files!)
+data/*.json
+
+# Scripts
+scripts/
+
+# Docs
+docs/
+
+# IDE
+.idea/
+.vscode/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Logs
+logs/
+
+# Temp
+*.tmp
+*.log

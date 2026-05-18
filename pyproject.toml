@@ -1,0 +1,16 @@
+[project]
+name = "owasp-llm-security"
+version = "1.0.0"
+description = "OWASP Top 10 for LLM — Security Test Suite"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+openai = ["openai>=1.0"]
+anthropic = ["anthropic>=0.20"]
+dev = ["pytest>=8.0", "pytest-cov>=5.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
