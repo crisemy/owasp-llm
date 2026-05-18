@@ -11,7 +11,7 @@ A comprehensive security testing framework implementing the OWASP Top 10 for Lar
 | Week 3 — LLM05 + LLM07 + LLM10 | Complete | Supply chain, plugins, model theft — specialized validators |
 | Week 4 — LLM03 + LLM08 | Complete | Training poisoning, excessive agency — domain validators |
 | Week 5 — LLM09 + Integration | Complete | Overreliance, methodology updates |
-| Week 6 — Architecture & Validation | In Progress | Documentation, coverage validation, release |
+| Week 6 — Architecture & Validation | Complete | Documentation, coverage validation, release |
 
 ## Quick Start
 
@@ -280,6 +280,7 @@ Each week of the implementation plan gets its own branch:
 | `week-4-poisoning-agency` | Week 4 | LLM03 + LLM08 |
 | `week-5-overreliance-integration` | Week 5 | LLM09 + integration |
 | `week-6-architecture-validation` | Week 6 | Architecture docs, coverage validation, release |
+| `feature-advanced-testing` | Feature | Custom APIs, web testing, interactive REPL, test wizard |
 
 ## Manual Testing & Certification
 
@@ -386,11 +387,14 @@ python scripts/executor.py --target mock --category LLM09
 Week 6 finalizes the module with coverage validation, architecture documentation, and release report:
 
 ```powershell
-# Run coverage validation
+# Run coverage validation (validates all 10 categories, 116 test cases, 6 validators)
 python scripts/validate_coverage.py
 
 # Run full test suite
 python scripts/executor.py --target mock --model test
+
+# View the release report
+cat 03_llm_security/09_release_report.md
 ```
 
 **Validation Results**:
@@ -401,8 +405,34 @@ python scripts/executor.py --target mock --model test
 
 **Release Artifacts**:
 - `03_llm_security/09_release_report.md` — Full architecture and release documentation
-- `data/red_team_results/coverage_report.json` — Coverage validation matrix
 - `scripts/validate_coverage.py` — Automated coverage validation script
+
+### Running the Complete Framework (Week 6 Branch)
+
+To run the fully validated Week 6 release:
+
+```powershell
+# Checkout the week-6 branch
+git checkout week-6-architecture-validation
+
+# Install dependencies
+pip install -e ".[dev]"
+
+# Step 1: Validate coverage
+python scripts/validate_coverage.py
+
+# Step 2: Run full OWASP LLM Top 10 test suite
+python scripts/executor.py --target mock --model test
+
+# Step 3: Test against live APIs (optional)
+python scripts/executor.py --target openai --model gpt-4o --api-key $env:OPENAI_API_KEY
+
+# Step 4: Interactive prompt testing
+python scripts/interactive_test.py --target openai --model gpt-4o --api-key $env:OPENAI_API_KEY
+
+# Step 5: Generate custom test cases
+python scripts/test_case_wizard.py
+```
 
 ### Rollback Triggers
 
