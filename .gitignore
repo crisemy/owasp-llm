@@ -2,17 +2,21 @@
 .venv/
 venv/
 env/
+__pycache__/
+*.pyc
 
 # Testing
 .pytest_cache/
 .coverage
 htmlcov/
 
-# Data (Keep your JSON files!)
-data/*.json
+# Data
+data/red_team_results/
 
-# Scripts
-scripts/
+# Scripts (keep executor and validation scripts)
+!scripts/executor.py
+!scripts/generate_test_cases.py
+!scripts/validate_coverage.py
 
 # Docs
 docs/
