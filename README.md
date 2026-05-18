@@ -34,7 +34,7 @@ pip install -e ".[dev]"
 
 ### Run the Test Suite
 
-```bash
+```powershell
 # Against mock LLM (no API key needed, instant results)
 python scripts/executor.py --target mock --model test
 
@@ -44,6 +44,12 @@ python scripts/executor.py --target openai --model gpt-4o --api-key $env:OPENAI_
 # Against Anthropic Claude
 python scripts/executor.py --target anthropic --model claude-sonnet-4-20250514 --api-key $env:ANTHROPIC_API_KEY
 
+# Against custom REST API (OpenAI-compatible or custom format)
+python scripts/executor.py --target custom --endpoint https://your-api.com/v1/generate --api-key $env:YOUR_API_KEY
+
+# Against a website with embedded LLM chat (requires Playwright)
+python scripts/executor.py --target web --url https://chat.example.com --headless
+
 # Run only specific OWASP category
 python scripts/executor.py --target mock --category LLM01
 python scripts/executor.py --target mock --category LLM02
@@ -51,6 +57,43 @@ python scripts/executor.py --target mock --category LLM04
 
 # Custom test file or output directory
 python scripts/executor.py --target mock --test-file data/red_team_tests/llm_security.jsonl --output-dir data/red_team_results
+```
+
+### Interactive Prompt Testing
+
+Real-time REPL for manual prompt testing against any target:
+
+```powershell
+# Interactive mode with mock
+python scripts/interactive_test.py --target mock --model test
+
+# Interactive mode with OpenAI
+python scripts/interactive_test.py --target openai --model gpt-4o --api-key $env:OPENAI_API_KEY
+
+# Interactive mode with custom API
+python scripts/interactive_test.py --target custom --endpoint https://your-api.com/v1 --api-key $KEY
+
+# Interactive commands:
+#   /quit or /exit  - Exit
+#   /history        - Show conversation history
+#   /save <file>    - Save history to JSON
+#   /clear          - Clear history
+#   /help           - Show commands
+```
+
+### Test Case Generator Wizard
+
+Interactive wizard for creating custom OWASP LLM test cases:
+
+```powershell
+# Start wizard (outputs to data/red_team_tests/custom_tests.jsonl)
+python scripts/test_case_wizard.py
+
+# Custom output file
+python scripts/test_case_wizard.py --output data/red_team_tests/my_tests.jsonl
+
+# Run your custom tests
+python scripts/executor.py --target openai --model gpt-4o --test-file data/red_team_tests/custom_tests.jsonl --api-key $env:OPENAI_API_KEY
 ```
 
 ### Understanding Results
@@ -218,7 +261,10 @@ Test Cases (JSONL) ──► Test Executor ──► Target LLM ──► Evalua
 
 - **Contracts** (`src/core/contracts.py`) — Pydantic models enforcing all data schemas
 - **Test Registry** (`data/red_team_tests/llm_security.jsonl`) — 116 structured test cases
-- **Executor** (`scripts/executor.py`) — Runs tests against mock, OpenAI, or Anthropic
+- **Executor** (`scripts/executor.py`) — Runs tests against mock, OpenAI, Anthropic, custom APIs, or websites
+- **Advanced Clients** (`src/core/advanced_clients.py`) — CustomAPIClient, WebLLMClient (Playwright), InteractiveClient, TestCaseWizard
+- **Interactive Tester** (`scripts/interactive_test.py`) — Real-time REPL for manual prompt testing
+- **Test Case Wizard** (`scripts/test_case_wizard.py`) — Interactive OWASP test case generator
 - **Evaluation Engine** — 5 methods: pattern_match, llm_judge, metric_threshold, schema_validation, human_review
 - **CI Pipeline** (`.github/workflows/security-tests.yml`) — Blocks PRs if ASR > 15%
 

@@ -609,9 +609,12 @@ class TestExecutor:
 
 def main():
     parser = argparse.ArgumentParser(description="OWASP LLM Security Test Executor")
-    parser.add_argument("--target", choices=["mock", "openai", "anthropic"], default="mock", help="LLM provider")
+    parser.add_argument("--target", choices=["mock", "openai", "anthropic", "custom", "web"], default="mock", help="LLM provider")
     parser.add_argument("--model", default="mock", help="Model name")
     parser.add_argument("--api-key", default=None, help="API key for live providers")
+    parser.add_argument("--endpoint", default=None, help="Custom API endpoint URL (for --target custom)")
+    parser.add_argument("--url", default=None, help="Website URL with LLM chat (for --target web)")
+    parser.add_argument("--headless", action="store_true", default=True, help="Run browser in headless mode (for --target web)")
     parser.add_argument("--test-file", default="data/red_team_tests/llm_security.jsonl", help="Path to test cases JSONL")
     parser.add_argument("--output-dir", default="data/red_team_results", help="Output directory")
     parser.add_argument("--category", default=None, help="Run only tests for specific OWASP category (e.g., LLM01)")
@@ -630,6 +633,18 @@ def main():
             print("Error: --api-key required for anthropic target")
             sys.exit(1)
         client = AnthropicClient(api_key=args.api_key, model=args.model)
+    elif args.target == "custom":
+        from src.core.advanced_clients import CustomAPIClient
+        if not args.endpoint:
+            print("Error: --endpoint required for custom target")
+            sys.exit(1)
+        client = CustomAPIClient(base_url=args.endpoint, api_key=args.api_key)
+    elif args.target == "web":
+        from src.core.advanced_clients import WebLLMClient
+        if not args.url:
+            print("Error: --url required for web target")
+            sys.exit(1)
+        client = WebLLMClient(url=args.url, headless=args.headless)
     else:
         print(f"Error: Unknown target {args.target}")
         sys.exit(1)
