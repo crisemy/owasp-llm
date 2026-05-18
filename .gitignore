@@ -10,8 +10,8 @@ __pycache__/
 .coverage
 htmlcov/
 
-# Data (Keep your JSON files!)
-data/*.json
+# Data
+data/red_team_results/
 
 # Scripts (keep executor and validation scripts)
 !scripts/executor.py
