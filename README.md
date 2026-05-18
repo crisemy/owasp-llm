@@ -8,8 +8,8 @@ A comprehensive security testing framework implementing the OWASP Top 10 for Lar
 |-------|--------|---------|
 | Week 1 — Research & Foundation | Complete | Mapping, schema, skills audit, contracts, executor, CI |
 | Week 2 — LLM02 + LLM04 | Complete | Output handling, Model DoS — live API testing |
-| Week 3 — LLM05 + LLM07 + LLM10 | In Progress | Supply chain, plugins, model theft — specialized validators |
-| Week 4 — LLM03 + LLM08 | Planned | Training poisoning, excessive agency |
+| Week 3 — LLM05 + LLM07 + LLM10 | Complete | Supply chain, plugins, model theft — specialized validators |
+| Week 4 — LLM03 + LLM08 | In Progress | Training poisoning, excessive agency — domain validators |
 | Week 5 — LLM09 + Integration | Planned | Overreliance, methodology updates |
 | Week 6 — Architecture & Validation | Planned | Documentation, coverage validation |
 
@@ -293,6 +293,29 @@ python scripts/executor.py --target mock --category LLM10
 - LLM05: 11/12 passed (ASR: 8.3%) [YELLOW] — 1 expected dependency vulnerability detection
 - LLM07: 12/12 passed (ASR: 0.0%) [GREEN] — All plugin security controls effective
 - LLM10: 8/9 passed (ASR: 11.1%) [YELLOW] — 1 expected fingerprinting detection
+
+### Week 4 — Training Poisoning & Agency Validators
+
+Week 4 adds validators for training data integrity and agent boundary enforcement:
+
+```powershell
+# Test training data poisoning (LLM03)
+python scripts/executor.py --target mock --category LLM03
+
+# Test excessive agency (LLM08)
+python scripts/executor.py --target mock --category LLM08
+```
+
+**Validator Modules** (`src/core/week4_validators.py`):
+
+| Validator | Category | Checks |
+|-----------|----------|--------|
+| `PoisoningValidator` | LLM03 | Backdoor detection, fine-tuning integrity, RAG poisoning, data provenance |
+| `AgencyValidator` | LLM08 | Action authorization, credential exposure, privilege escalation, decision boundaries |
+
+**Week 4 Test Results (Mock)**:
+- LLM03: 11/11 passed (ASR: 0.0%) [GREEN] — All poisoning controls effective
+- LLM08: 12/12 passed (ASR: 0.0%) [GREEN] — All agency boundaries enforced
 
 ### Rollback Triggers
 
