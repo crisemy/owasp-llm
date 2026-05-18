@@ -7,8 +7,8 @@ A comprehensive security testing framework implementing the OWASP Top 10 for Lar
 | Phase | Status | Details |
 |-------|--------|---------|
 | Week 1 — Research & Foundation | Complete | Mapping, schema, skills audit, contracts, executor, CI |
-| Week 2 — LLM02 + LLM04 | In Progress | Output handling, Model DoS — live API testing |
-| Week 3 — LLM05 + LLM07 + LLM10 | Planned | Supply chain, plugins, model theft |
+| Week 2 — LLM02 + LLM04 | Complete | Output handling, Model DoS — live API testing |
+| Week 3 — LLM05 + LLM07 + LLM10 | In Progress | Supply chain, plugins, model theft — specialized validators |
 | Week 4 — LLM03 + LLM08 | Planned | Training poisoning, excessive agency |
 | Week 5 — LLM09 + Integration | Planned | Overreliance, methodology updates |
 | Week 6 — Architecture & Validation | Planned | Documentation, coverage validation |
@@ -265,6 +265,34 @@ python scripts/executor.py --target openai --model gpt-4o --category LLM02 --api
 # Test Model DoS (LLM04)
 python scripts/executor.py --target openai --model gpt-4o --category LLM04 --api-key $env:OPENAI_API_KEY
 ```
+
+### Week 3 — Specialized Validators
+
+Week 3 introduces domain-specific validators for supply chain, plugin security, and model theft:
+
+```powershell
+# Test supply chain vulnerabilities (LLM05)
+python scripts/executor.py --target mock --category LLM05
+
+# Test insecure plugin design (LLM07)
+python scripts/executor.py --target mock --category LLM07
+
+# Test model theft detection (LLM10)
+python scripts/executor.py --target mock --category LLM10
+```
+
+**Validator Modules** (`src/core/week3_validators.py`):
+
+| Validator | Category | Checks |
+|-----------|----------|--------|
+| `SupplyChainValidator` | LLM05 | Model provenance, dependency scanning, SBOM compliance |
+| `PluginSecurityValidator` | LLM07 | Permission validation, tool call analysis, input schema checks |
+| `ModelTheftDetector` | LLM10 | Extraction attempt detection, fingerprinting analysis, weight stealing |
+
+**Week 3 Test Results (Mock)**:
+- LLM05: 11/12 passed (ASR: 8.3%) [YELLOW] — 1 expected dependency vulnerability detection
+- LLM07: 12/12 passed (ASR: 0.0%) [GREEN] — All plugin security controls effective
+- LLM10: 8/9 passed (ASR: 11.1%) [YELLOW] — 1 expected fingerprinting detection
 
 ### Rollback Triggers
 
