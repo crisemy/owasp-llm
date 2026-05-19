@@ -100,18 +100,32 @@ class CustomAPIClient:
         else:
             payload = self._build_custom_payload(prompt, system_prompt, **kwargs)
 
-        start = time.time()
-        resp = self.requests.post(
-            self.base_url,
-            json=payload,
-            headers=self.headers,
-            timeout=self.timeout,
-        )
-        latency_ms = int((time.time() - start) * 1000)
+        max_retries = 3
+        retry_delay = 2  # seconds
 
-        if resp.status_code == 401:
-            raise RuntimeError(f"401 Unauthorized — check your API key. URL: {self.base_url}")
-        resp.raise_for_status()
+        for attempt in range(max_retries):
+            start = time.time()
+            resp = self.requests.post(
+                self.base_url,
+                json=payload,
+                headers=self.headers,
+                timeout=self.timeout,
+            )
+            latency_ms = int((time.time() - start) * 1000)
+
+            if resp.status_code == 429:
+                wait = retry_delay * (2 ** attempt)
+                print(f"Rate limited. Waiting {wait}s before retry {attempt+1}/{max_retries}...")
+                time.sleep(wait)
+                continue
+
+            if resp.status_code == 401:
+                raise RuntimeError(f"401 Unauthorized — check your API key. URL: {self.base_url}")
+
+            resp.raise_for_status()
+            break
+        else:
+            raise RuntimeError(f"Rate limited after {max_retries} retries. Try a paid model or wait.")
 
         data = resp.json()
         response_text = self._extract_response(data)
