@@ -5,6 +5,9 @@ env/
 __pycache__/
 *.pyc
 
+# Secrets
+.env
+
 # Testing
 .pytest_cache/
 .coverage

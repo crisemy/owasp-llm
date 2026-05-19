@@ -610,9 +610,9 @@ class TestExecutor:
 def main():
     parser = argparse.ArgumentParser(description="OWASP LLM Security Test Executor")
     parser.add_argument("--target", choices=["mock", "openai", "anthropic", "custom", "web"], default="mock", help="LLM provider")
-    parser.add_argument("--model", default="mock", help="Model name")
-    parser.add_argument("--api-key", default=None, help="API key for live providers")
-    parser.add_argument("--endpoint", default=None, help="Custom API endpoint URL (for --target custom)")
+    parser.add_argument("--model", default=None, help="Model name (auto-detected if not set)")
+    parser.add_argument("--api-key", default=None, help="API key (overrides .env file)")
+    parser.add_argument("--endpoint", default=None, help="Custom API endpoint URL (for --target custom, overrides .env)")
     parser.add_argument("--url", default=None, help="Website URL with LLM chat (for --target web)")
     parser.add_argument("--headless", action="store_true", default=True, help="Run browser in headless mode (for --target web)")
     parser.add_argument("--test-file", default="data/red_team_tests/llm_security.jsonl", help="Path to test cases JSONL")
@@ -620,25 +620,54 @@ def main():
     parser.add_argument("--category", default=None, help="Run only tests for specific OWASP category (e.g., LLM01)")
     args = parser.parse_args()
 
+    from src.core.config import (
+        get_custom_endpoint,
+        get_custom_key,
+        get_custom_model,
+        get_openai_key,
+        get_openrouter_key,
+        require_anthropic_key,
+        require_custom_key,
+        require_openai_key,
+    )
+
     # Create client
     if args.target == "mock":
-        client = MockClient(model=args.model)
+        client = MockClient(model=args.model or "mock")
+
     elif args.target == "openai":
-        if not args.api_key:
-            print("Error: --api-key required for openai target")
-            sys.exit(1)
-        client = OpenAIClient(api_key=args.api_key, model=args.model)
+        key = args.api_key or require_openai_key()
+        model = args.model or "gpt-4o"
+        print(f"Using OpenAI model: {model}")
+        client = OpenAIClient(api_key=key, model=model)
+
     elif args.target == "anthropic":
-        if not args.api_key:
-            print("Error: --api-key required for anthropic target")
-            sys.exit(1)
-        client = AnthropicClient(api_key=args.api_key, model=args.model)
+        key = args.api_key or require_anthropic_key()
+        model = args.model or "claude-sonnet-4-20250514"
+        print(f"Using Anthropic model: {model}")
+        client = AnthropicClient(api_key=key, model=model)
+
     elif args.target == "custom":
         from src.core.advanced_clients import CustomAPIClient
-        if not args.endpoint:
-            print("Error: --endpoint required for custom target")
+
+        key = args.api_key or require_custom_key()
+        endpoint = args.endpoint or get_custom_endpoint()
+        if not endpoint:
+            print("Error: --endpoint required for custom target (or set CUSTOM_ENDPOINT in .env)")
             sys.exit(1)
-        client = CustomAPIClient(base_url=args.endpoint, api_key=args.api_key)
+
+        model = args.model or get_custom_model()
+
+        # Auto-detect OpenRouter key if using OpenRouter endpoint
+        if "openrouter.ai" in endpoint and not args.api_key:
+            or_key = get_openrouter_key() or get_custom_key()
+            if or_key:
+                key = or_key
+
+        print(f"Using custom endpoint: {endpoint}")
+        print(f"Using model: {model}")
+        client = CustomAPIClient(base_url=endpoint, api_key=key, model=model)
+
     elif args.target == "web":
         from src.core.advanced_clients import WebLLMClient
         if not args.url:
