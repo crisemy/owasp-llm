@@ -19,6 +19,11 @@ A comprehensive security testing framework implementing the OWASP Top 10 for Lar
 - Python 3.12+
 - (Optional) OpenAI API key for live testing
 - (Optional) Anthropic API key for live testing
+- (Optional) Playwright + Chromium for `--target web`:
+  ```bash
+  pip install -e ".[web]"
+  playwright install chromium
+  ```
 
 ### Setup
 
@@ -28,8 +33,9 @@ python -m venv .venv
 .venv\Scripts\Activate.ps1          # Windows
 source .venv/bin/activate           # macOS/Linux
 
-# Install dependencies
-pip install -e ".[dev]"
+# Install dependencies (pick one)
+pip install -e ".[dev]"             # from pyproject.toml
+pip install -r requirements.txt     # or from requirements.txt
 ```
 
 ### Run the Test Suite
@@ -49,6 +55,9 @@ python scripts/executor.py --target custom --endpoint https://your-api.com/v1/ge
 
 # Against a website with embedded LLM chat (requires Playwright)
 python scripts/executor.py --target web --url https://chat.example.com --headless
+
+# Without headless (watch the browser interact)
+python scripts/executor.py --target web --url https://chat.example.com --no-headless
 
 # Run only specific OWASP category
 python scripts/executor.py --target mock --category LLM01
@@ -425,7 +434,7 @@ python scripts/validate_coverage.py
 python scripts/executor.py --target mock --model test
 
 # Step 3: Test against live APIs (optional)
-python scripts/executor.py --target openai --model gpt-4o --api-key $env:OPENAI_API_KEY
+python scripts/executor.py --target custom --model google/gemini-3.1-flash-lite
 
 # Step 4: Interactive prompt testing
 python scripts/interactive_test.py --target openai --model gpt-4o --api-key $env:OPENAI_API_KEY

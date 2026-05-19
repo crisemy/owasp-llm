@@ -618,7 +618,7 @@ def main():
     parser.add_argument("--api-key", default=None, help="API key (overrides .env file)")
     parser.add_argument("--endpoint", default=None, help="Custom API endpoint URL (for --target custom, overrides .env)")
     parser.add_argument("--url", default=None, help="Website URL with LLM chat (for --target web)")
-    parser.add_argument("--headless", action="store_true", default=True, help="Run browser in headless mode (for --target web)")
+    parser.add_argument("--headless", action=argparse.BooleanOptionalAction, default=True, help="Run browser in headless mode (for --target web)")
     parser.add_argument("--test-file", default="data/red_team_tests/llm_security.jsonl", help="Path to test cases JSONL")
     parser.add_argument("--output-dir", default="data/red_team_results", help="Output directory")
     parser.add_argument("--category", default=None, help="Run only tests for specific OWASP category (e.g., LLM01)")
