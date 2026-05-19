@@ -353,12 +353,13 @@ Answer ONLY with a JSON object:
 class TestExecutor:
     """Orchestrates test execution and evaluation."""
 
-    def __init__(self, client: LLMClient, results_dir: Path):
+    def __init__(self, client: LLMClient, results_dir: Path, delay_between_requests: float = 0):
         self.client = client
         self.results_dir = results_dir
         self.results_dir.mkdir(parents=True, exist_ok=True)
         self.engine = EvaluationEngine()
         self.results: List[Dict[str, Any]] = []
+        self.delay = delay_between_requests
 
     def load_test_cases(self, path: Path) -> List[TestCase]:
         cases = []
@@ -523,6 +524,9 @@ class TestExecutor:
         for i, tc in enumerate(test_cases):
             print(f"[{i+1}/{total}] {tc.id} ({tc.owasp_id}/{tc.subcategory})...", end=" ")
 
+            if self.delay > 0 and i > 0:
+                time.sleep(self.delay)
+
             try:
                 result = self.execute(tc)
                 record = {
@@ -618,6 +622,7 @@ def main():
     parser.add_argument("--test-file", default="data/red_team_tests/llm_security.jsonl", help="Path to test cases JSONL")
     parser.add_argument("--output-dir", default="data/red_team_results", help="Output directory")
     parser.add_argument("--category", default=None, help="Run only tests for specific OWASP category (e.g., LLM01)")
+    parser.add_argument("--delay", type=float, default=2.0, help="Seconds between API requests (default: 2.0 to avoid rate limits)")
     args = parser.parse_args()
 
     from src.core.config import (
@@ -684,7 +689,7 @@ def main():
         print(f"Error: Test file not found: {test_file}")
         sys.exit(1)
 
-    executor = TestExecutor(client=client, results_dir=Path(args.output_dir))
+    executor = TestExecutor(client=client, results_dir=Path(args.output_dir), delay_between_requests=args.delay)
     all_cases = executor.load_test_cases(test_file)
 
     # Filter by category if specified
