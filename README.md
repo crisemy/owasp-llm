@@ -130,6 +130,9 @@ python scripts/interactive_test.py --target openai --model gpt-4o --api-key $env
 # Interactive mode with custom API
 python scripts/interactive_test.py --target custom --endpoint https://your-api.com/v1 --api-key $KEY
 
+# Interactive mode with web (browser automation)
+python scripts/interactive_test.py --target web --url https://minitoolai.com/chatGPT --no-headless --input-selector "#message" --submit-selector "#send-button"
+
 # Interactive commands:
 #   /quit or /exit  - Exit
 #   /history        - Show conversation history
