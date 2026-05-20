@@ -6,6 +6,7 @@ Usage:
     python scripts/interactive_test.py --target openai --model gpt-4o
     python scripts/interactive_test.py --target anthropic --model claude-sonnet-4-20250514
     python scripts/interactive_test.py --target custom --endpoint https://api.example.com/v1
+    python scripts/interactive_test.py --target web --url https://minitoolai.com/chatGPT --input-selector "#message" --submit-selector "#send-button"
 
 API keys are loaded automatically from .env file.
 """
@@ -21,7 +22,7 @@ project_root = Path(__file__).parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from src.core.advanced_clients import CustomAPIClient, InteractiveClient
+from src.core.advanced_clients import CustomAPIClient, InteractiveClient, WebLLMClient
 from src.core.config import (
     get_custom_endpoint,
     get_custom_key,
@@ -35,10 +36,16 @@ from src.core.config import (
 
 def main():
     parser = argparse.ArgumentParser(description="Interactive LLM Prompt Tester")
-    parser.add_argument("--target", choices=["mock", "openai", "anthropic", "custom"], default="mock", help="LLM provider")
+    parser.add_argument("--target", choices=["mock", "openai", "anthropic", "custom", "web"], default="mock", help="LLM provider")
     parser.add_argument("--model", default=None, help="Model name (auto-detected if not set)")
     parser.add_argument("--api-key", default=None, help="API key (overrides .env file)")
     parser.add_argument("--endpoint", default=None, help="Custom API endpoint URL (for --target custom)")
+    parser.add_argument("--url", default=None, help="Website URL with LLM chat (for --target web)")
+    parser.add_argument("--headless", action=argparse.BooleanOptionalAction, default=True, help="Run browser in headless mode (for --target web)")
+    parser.add_argument("--input-selector", default=None, help="CSS selector for chat input (for --target web)")
+    parser.add_argument("--submit-selector", default=None, help="CSS selector for submit button (for --target web)")
+    parser.add_argument("--response-selector", default=None, help="CSS selector for response area (for --target web)")
+    parser.add_argument("--cookie-selector", default=None, help="CSS selector for cookie consent button (for --target web)")
     parser.add_argument("--system-prompt", default=None, help="System prompt to prepend")
     args = parser.parse_args()
 
@@ -78,6 +85,20 @@ def main():
         print(f"Using custom endpoint: {endpoint}")
         print(f"Using model: {model}")
         client = CustomAPIClient(base_url=endpoint, api_key=key, model=model)
+
+    elif args.target == "web":
+        if not args.url:
+            print("Error: --url required for web target")
+            sys.exit(1)
+        print(f"Opening browser: {args.url}")
+        client = WebLLMClient(
+            url=args.url,
+            headless=args.headless,
+            input_selector=args.input_selector,
+            submit_selector=args.submit_selector,
+            response_selector=args.response_selector,
+            cookie_selector=args.cookie_selector,
+        )
 
     else:
         print(f"Error: Unknown target {args.target}")
