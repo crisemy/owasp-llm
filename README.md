@@ -59,6 +59,18 @@ python scripts/executor.py --target web --url https://chat.example.com --headles
 # Without headless (watch the browser interact)
 python scripts/executor.py --target web --url https://chat.example.com --no-headless
 
+# Run only a few randomly selected tests (avoid rate limits on free sites)
+python scripts/executor.py --target web --url https://chat.example.com --limit 5 --random
+
+# Run a specific OWASP category
+python scripts/executor.py --target web --url https://chat.example.com --category LLM01 --limit 3 --random
+
+# Custom selectors (when auto-detect fails — use --no-headless to inspect)
+python scripts/executor.py --target web --url https://minitoolai.com/chatGPT --input-selector "#message" --submit-selector "#send-button" --cookie-selector "button.accept" --limit 5 --random
+
+# Dump available elements on the page when selectors aren't found
+python scripts/executor.py --target web --url https://example.com
+
 # Run only specific OWASP category
 python scripts/executor.py --target mock --category LLM01
 python scripts/executor.py --target mock --category LLM02
@@ -66,6 +78,42 @@ python scripts/executor.py --target mock --category LLM04
 
 # Custom test file or output directory
 python scripts/executor.py --target mock --test-file data/red_team_tests/llm_security.jsonl --output-dir data/red_team_results
+```
+
+### Web Target (`--target web`)
+
+Tests LLM models embedded in websites by automating a real browser via Playwright.
+
+**Setup:**
+```bash
+pip install -e ".[web]"       # or: pip install playwright>=1.40
+playwright install chromium    # download the browser binary (~180MB)
+```
+
+**How it works:**
+1. Opens Chromium and navigates to the URL
+2. Auto-detects chat input (`textarea`, submit button, response area)
+3. Types each test prompt, clicks submit, captures the response
+4. Dismisses cookie banners automatically
+
+**CLI flags:**
+
+| Flag | Description |
+|------|-------------|
+| `--url` | Website URL with an LLM chat (required) |
+| `--headless` / `--no-headless` | Run with or without a visible browser window |
+| `--input-selector` | CSS selector for the chat textarea/input |
+| `--submit-selector` | CSS selector for the send button |
+| `--response-selector` | CSS selector for the response area (optional, falls back to page body) |
+| `--cookie-selector` | CSS selector for cookie consent button |
+| `--limit N` | Run only N tests (avoids rate limits) |
+| `--random` | Shuffle tests before applying `--limit` |
+
+**Finding selectors:** Run with `--no-headless` and the page will open visibly. Use DevTools (F12) to inspect the chat input and send button. If selectors aren't provided, the tool dumps all available inputs/buttons on the page with their IDs and classes.
+
+**Real-world example (MiniToolAI ChatGPT):**
+```powershell
+python scripts/executor.py --target web --url https://minitoolai.com/chatGPT --no-headless --limit 5 --random --input-selector "#message" --submit-selector "#send-button"
 ```
 
 ### Interactive Prompt Testing
