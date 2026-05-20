@@ -13,6 +13,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import random
 import sys
 from pathlib import Path
 
@@ -619,9 +620,15 @@ def main():
     parser.add_argument("--endpoint", default=None, help="Custom API endpoint URL (for --target custom, overrides .env)")
     parser.add_argument("--url", default=None, help="Website URL with LLM chat (for --target web)")
     parser.add_argument("--headless", action=argparse.BooleanOptionalAction, default=True, help="Run browser in headless mode (for --target web)")
+    parser.add_argument("--input-selector", default=None, help="CSS selector for chat input (for --target web)")
+    parser.add_argument("--submit-selector", default=None, help="CSS selector for submit button (for --target web)")
+    parser.add_argument("--response-selector", default=None, help="CSS selector for response area (for --target web)")
+    parser.add_argument("--cookie-selector", default=None, help="CSS selector for cookie consent button (for --target web)")
     parser.add_argument("--test-file", default="data/red_team_tests/llm_security.jsonl", help="Path to test cases JSONL")
     parser.add_argument("--output-dir", default="data/red_team_results", help="Output directory")
     parser.add_argument("--category", default=None, help="Run only tests for specific OWASP category (e.g., LLM01)")
+    parser.add_argument("--limit", type=int, default=0, help="Max number of tests to run (0 = all)")
+    parser.add_argument("--random", action="store_true", help="Shuffle tests before limiting (use with --limit)")
     parser.add_argument("--delay", type=float, default=2.0, help="Seconds between API requests (default: 2.0 to avoid rate limits)")
     args = parser.parse_args()
 
@@ -678,7 +685,14 @@ def main():
         if not args.url:
             print("Error: --url required for web target")
             sys.exit(1)
-        client = WebLLMClient(url=args.url, headless=args.headless)
+        client = WebLLMClient(
+            url=args.url,
+            headless=args.headless,
+            input_selector=args.input_selector,
+            submit_selector=args.submit_selector,
+            response_selector=args.response_selector,
+            cookie_selector=args.cookie_selector,
+        )
     else:
         print(f"Error: Unknown target {args.target}")
         sys.exit(1)
@@ -698,6 +712,14 @@ def main():
         print(f"Running {len(all_cases)} tests for {args.category}")
     else:
         print(f"Running {len(all_cases)} tests against {args.target}/{args.model}")
+
+    # Randomize and limit if specified
+    if args.random:
+        random.shuffle(all_cases)
+        print(f"Shuffled test order")
+    if args.limit > 0 and len(all_cases) > args.limit:
+        all_cases = all_cases[:args.limit]
+        print(f"Limited to {len(all_cases)} tests")
 
     # Execute
     summary = executor.run_suite(all_cases)
