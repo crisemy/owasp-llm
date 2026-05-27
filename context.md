@@ -14,42 +14,43 @@ To identify, evaluate, and mitigate security vulnerabilities in LLM-based system
 
 ## 3. Key Components & Concepts
 
-*   **OWASP LLM Top 10:** The project directly addresses all 10 categories:
-    *   LLM01: Prompt Injection
-    *   LLM02: Insecure Output Handling
-    *   LLM03: Training Data Poisoning
-    *   LLM04: Model Denial of Service
-    *   LLM05: Supply Chain Vulnerabilities
-    *   LLM06: Sensitive Information Disclosure
-    *   LLM07: Insecure Plugin Design
-    *   LLM08: Excessive Agency
-    *   LLM09: Overreliance
-    *   LLM10: Model Theft
-*   **Test Cases:** A registry of 116 structured test cases (`data/red_team_tests/llm_security.jsonl`), each mapped to an OWASP ID and designed to exploit specific vulnerabilities.
-*   **Test Executor:** A Python script (`scripts/executor.py`) capable of running tests against various LLM targets (mock, OpenAI, Anthropic, custom APIs, web LLMs).
-*   **Evaluation Engine:** Supports multiple evaluation methods (e.g., `pattern_match`, `llm_judge`, `metric_threshold`, `schema_validation`, `human_review`) for accurate assessment of LLM responses.
-*   **Pydantic Contracts:** Data schemas (`src/core/contracts.py`) for all critical data types (e.g., `TestCase`, `EvalRecord`, `RiskRecord`), ensuring data integrity.
-*   **Specialized Validators:** Domain-specific Python modules (`src/core/weekX_validators.py`) for advanced checks related to supply chain, plugins, poisoning, agency, overreliance, and model theft.
-*   **Key Performance Indicators (KPIs):** Defined security metrics (e.g., Attack Success Rate, Injection Detection Rate) used for monitoring and release gating.
-*   **CI/CD Integration:** Automated security tests run via GitHub Actions (`.github/workflows/security-tests.yml`), blocking releases if critical security thresholds are breached.
-*   **Human Override Protocol:** A defined process (`02_operations/human_override_protocol.md`) for human experts to override automated decisions, especially for security and agency-related issues.
-*   **Rollback Procedure:** A protocol (`02_operations/rollback_procedure.md`) for automatically rolling back deployments when critical KPIs are violated.
-*   **Interactive Tools:** `scripts/interactive_test.py` for real-time prompt testing and `scripts/test_case_wizard.py` for interactive test case generation.
+* **OWASP LLM Top 10:** The project directly addresses all 10 categories:
+  * LLM01: Prompt Injection
+  * LLM02: Insecure Output Handling
+  * LLM03: Training Data Poisoning
+  * LLM04: Model Denial of Service
+  * LLM05: Supply Chain Vulnerabilities
+  * LLM06: Sensitive Information Disclosure
+  * LLM07: Insecure Plugin Design
+  * LLM08: Excessive Agency
+  * LLM09: Overreliance
+  * LLM10: Model Theft
+
+* **Test Cases:** A registry of 116 structured test cases (`data/red_team_tests/llm_security.jsonl`), each mapped to an OWASP ID and designed to exploit specific vulnerabilities.
+* **Test Executor:** A Python script (`scripts/executor.py`) capable of running tests against various LLM targets (mock, OpenAI, Anthropic, custom APIs, web LLMs).
+* **Evaluation Engine:** Supports multiple evaluation methods (e.g., `pattern_match`, `llm_judge`, `metric_threshold`, `schema_validation`, `human_review`) for accurate assessment of LLM responses.
+* **Pydantic Contracts:** Data schemas (`src/core/contracts.py`) for all critical data types (e.g., `TestCase`, `EvalRecord`, `RiskRecord`), ensuring data integrity.
+* **Specialized Validators:** Domain-specific Python modules (`src/core/weekX_validators.py`) for advanced checks related to supply chain, plugins, poisoning, agency, overreliance, and model theft.
+* **Key Performance Indicators (KPIs):** Defined security metrics (e.g., Attack Success Rate, Injection Detection Rate) used for monitoring and release gating.
+* **CI/CD Integration:** Automated security tests run via GitHub Actions (`.github/workflows/security-tests.yml`), blocking releases if critical security thresholds are breached.
+* **Human Override Protocol:** A defined process (`02_operations/human_override_protocol.md`) for human experts to override automated decisions, especially for security and agency-related issues.
+* **Rollback Procedure:** A protocol (`02_operations/rollback_procedure.md`) for automatically rolling back deployments when critical KPIs are violated.
+* **Interactive Tools:** `scripts/interactive_test.py` for real-time prompt testing and `scripts/test_case_wizard.py` for interactive test case generation.
 
 ## 4. Quick Usage (Examples)
 
-*   **Run full test suite (mock):** `python scripts/executor.py --target mock --model test`
-*   **Run against OpenAI:** `python scripts/executor.py --target openai --model gpt-4o --api-key $OPENAI_API_KEY`
-*   **Interactive testing:** `python scripts/interactive_test.py --target openai --model gpt-4o`
-*   **Generate custom test cases:** `python scripts/test_case_wizard.py`
+* **Run full test suite (mock):** `python scripts/executor.py --target mock --model test`
+* **Run against OpenAI:** `python scripts/executor.py --target openai --model gpt-4o --api-key $OPENAI_API_KEY`
+* **Interactive testing:** `python scripts/interactive_test.py --target openai --model gpt-4o`
+* **Generate custom test cases:** `python scripts/test_case_wizard.py`
 
 ## 5. Project Structure Highlights
 
-*   `00_project_methodology.md`: Overall project guide.
-*   `02_operations/red_team_suite.md`: Detailed security testing framework.
-*   `data/red_team_tests/llm_security.jsonl`: The main test case repository.
-*   `scripts/`: Contains execution and utility scripts.
-*   `src/core/contracts.py`: Pydantic models for data contracts.
-*   `.github/workflows/security-tests.yml`: CI/CD pipeline definition.
+* `00_project_methodology.md`: Overall project guide.
+* `02_operations/red_team_suite.md`: Detailed security testing framework.
+* `data/red_team_tests/llm_security.jsonl`: The main test case repository.
+* `scripts/`: Contains execution and utility scripts.
+* `src/core/contracts.py`: Pydantic models for data contracts.
+* `.github/workflows/security-tests.yml`: CI/CD pipeline definition.
 
 This project provides a robust foundation for ensuring the security of LLM applications.
