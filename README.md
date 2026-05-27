@@ -426,8 +426,8 @@ python scripts/executor.py --target mock --category LLM08
 
 | Validator | Category | Checks |
 |-----------|----------|--------|
-| `PoisoningValidator` | LLM03 | Backdoor detection, fine-tuning integrity, RAG poisoning, data provenance |
-| `AgencyValidator` | LLM08 | Action authorization, credential exposure, privilege escalation, decision boundaries |
+| `PoisoningValidator` | LLM03  | Backdoor detection, fine-tuning integrity, RAG poisoning, data provenance |
+| `AgencyValidator`    | LLM08  | Action authorization, credential exposure, privilege escalation, decision boundaries |
 
 **Week 4 Test Results (Mock)**:
 
@@ -447,7 +447,7 @@ python scripts/executor.py --target mock --category LLM09
 
 | Validator | Category | Checks |
 |-----------|----------|--------|
-| `OverrelianceValidator` | LLM09 | Unvalidated automation, hallucination acceptance, feedback loops, confidence thresholds |
+| `OverrelianceValidator`       | LLM09   |  Unvalidated automation, hallucination acceptance, feedback loops, confidence thresholds |
 
 **Week 5 Test Results (Mock)**:
 
