@@ -24,7 +24,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pydantic>=2.0
+          pip install -r requirements.txt
+          python -m playwright install chromium --with-deps 2>/dev/null || true
 
       - name: Run OWASP LLM Security Tests (mock)
         id: security
@@ -65,8 +66,14 @@ jobs:
           retention-days: 30
 
       - name: Publish Summary
-        if: always()
+        if: success() || failure()
         run: |
+          if [ ! -f data/red_team_results/llm_security_summary.json ]; then
+            echo "## OWASP LLM Security Test Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ No results — tests did not complete." >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
           echo "## OWASP LLM Security Test Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           python -c "
