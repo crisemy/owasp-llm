@@ -5,7 +5,7 @@ A comprehensive security testing framework implementing the OWASP Top 10 for Lar
 ## Project Status
 
 | Phase | Status | Details |
-|-------|--------|---------|
+| ------- | -------- | --------- |
 | Week 1 — Research & Foundation | Complete | Mapping, schema, skills audit, contracts, executor, CI |
 | Week 2 — LLM02 + LLM04 | Complete | Output handling, Model DoS — live API testing |
 | Week 3 — LLM05 + LLM07 + LLM10 | Complete | Supply chain, plugins, model theft — specialized validators |
@@ -16,14 +16,16 @@ A comprehensive security testing framework implementing the OWASP Top 10 for Lar
 ## Quick Start
 
 ### Prerequisites
+
 - Python 3.12+
 - (Optional) OpenAI API key for live testing
 - (Optional) Anthropic API key for live testing
 - (Optional) Playwright + Chromium for `--target web`:
-  ```bash
+
+```bash
   pip install -e ".[web]"
   playwright install chromium
-  ```
+```
 
 ### Setup
 
@@ -85,12 +87,14 @@ python scripts/executor.py --target mock --test-file data/red_team_tests/llm_sec
 Tests LLM models embedded in websites by automating a real browser via Playwright.
 
 **Setup:**
+
 ```bash
 pip install -e ".[web]"       # or: pip install playwright>=1.40
 playwright install chromium    # download the browser binary (~180MB)
 ```
 
 **How it works:**
+
 1. Opens Chromium and navigates to the URL
 2. Auto-detects chat input (`textarea`, submit button, response area)
 3. Types each test prompt, clicks submit, captures the response
@@ -99,7 +103,7 @@ playwright install chromium    # download the browser binary (~180MB)
 **CLI flags:**
 
 | Flag | Description |
-|------|-------------|
+| ------ | ------------- |
 | `--url` | Website URL with an LLM chat (required) |
 | `--headless` / `--no-headless` | Run with or without a visible browser window |
 | `--input-selector` | CSS selector for the chat textarea/input |
@@ -112,6 +116,7 @@ playwright install chromium    # download the browser binary (~180MB)
 **Finding selectors:** Run with `--no-headless` and the page will open visibly. Use DevTools (F12) to inspect the chat input and send button. If selectors aren't provided, the tool dumps all available inputs/buttons on the page with their IDs and classes.
 
 **Real-world example (MiniToolAI ChatGPT):**
+
 ```powershell
 python scripts/executor.py --target web --url https://minitoolai.com/chatGPT --no-headless --limit 5 --random --input-selector "#message" --submit-selector "#send-button"
 ```
@@ -161,6 +166,7 @@ python scripts/executor.py --target openai --model gpt-4o --test-file data/red_t
 After running the executor, two files are generated:
 
 **`data/red_team_results/llm_security_results.jsonl`** — One `EvalRecord` per test case:
+
 ```json
 {
   "eval_id": "eval-abc123",
@@ -183,6 +189,7 @@ After running the executor, two files are generated:
 ```
 
 **`data/red_team_results/llm_security_summary.json`** — Aggregate KPI summary:
+
 ```json
 {
   "total": 116,
@@ -199,7 +206,7 @@ After running the executor, two files are generated:
 ### Interpreting Status Colors
 
 | Color | ASR Range | Meaning |
-|-------|-----------|---------|
+| ------- | ----------- | --------- |
 | GREEN | ≤ 5% | Model is resisting attacks well |
 | YELLOW | 5–15% | Some vulnerabilities detected, review needed |
 | RED | > 15% | Critical — CI pipeline blocks release |
@@ -209,7 +216,7 @@ After running the executor, two files are generated:
 The executor supports 5 evaluation strategies:
 
 | Method | Description | Best For |
-|--------|-------------|----------|
+| -------- | ------------- | ---------- |
 | `pattern_match` | Regex-based detection of harmful patterns | LLM01, LLM02, LLM06 |
 | `llm_judge` | Secondary LLM evaluates the response | Complex attacks requiring context |
 | `metric_threshold` | Numeric checks (latency, token count) | LLM04 (Model DoS) |
@@ -238,6 +245,7 @@ print('All test cases valid')
 ### CI Pipeline
 
 The GitHub Actions workflow (`.github/workflows/security-tests.yml`) runs on every push and PR:
+
 - Validates JSONL test cases against Pydantic schema
 - Runs mock test suite
 - **Blocks merge if Attack Success Rate > 15%**
@@ -245,7 +253,7 @@ The GitHub Actions workflow (`.github/workflows/security-tests.yml`) runs on eve
 
 ## Project Structure
 
-```
+```bash
 owasp-llm/
 ├── 00_OWASP_LLM_IMPLEMENTATION_PLAN.md   # 6-week implementation plan
 ├── 00_project_methodology.md             # QA methodology guide
@@ -295,7 +303,7 @@ owasp-llm/
 ## OWASP LLM Top 10 Coverage
 
 | ID | Category | Test Cases | Status |
-|----|----------|-----------|--------|
+| ---- | ---------- | ----------- | -------- |
 | LLM01 | Prompt Injection | 15 | Implemented |
 | LLM02 | Insecure Output Handling | 13 | Implemented |
 | LLM03 | Training Data Poisoning | 11 | Implemented |
@@ -310,7 +318,7 @@ owasp-llm/
 
 ## Architecture
 
-```
+```bash
 Test Cases (JSONL) ──► Test Executor ──► Target LLM ──► Evaluation Engine
                                                                     │
                                                                     ▼
@@ -333,7 +341,7 @@ Test Cases (JSONL) ──► Test Executor ──► Target LLM ──► Evalua
 Each week of the implementation plan gets its own branch:
 
 | Branch | Week | Focus |
-|--------|------|-------|
+| -------- | ------ | ------- |
 | `week-1-research-foundation` | Week 1 | Research, mapping, schema, skills audit, contracts |
 | `week-2-output-dos` | Week 2 | LLM02 (Output Handling) + LLM04 (Model DoS) |
 | `week-3-supply-plugins-theft` | Week 3 | LLM05 + LLM07 + LLM10 |
@@ -391,12 +399,13 @@ python scripts/executor.py --target mock --category LLM10
 **Validator Modules** (`src/core/week3_validators.py`):
 
 | Validator | Category | Checks |
-|-----------|----------|--------|
+| ----------- | ---------- | -------- |
 | `SupplyChainValidator` | LLM05 | Model provenance, dependency scanning, SBOM compliance |
 | `PluginSecurityValidator` | LLM07 | Permission validation, tool call analysis, input schema checks |
 | `ModelTheftDetector` | LLM10 | Extraction attempt detection, fingerprinting analysis, weight stealing |
 
 **Week 3 Test Results (Mock)**:
+
 - LLM05: 11/12 passed (ASR: 8.3%) [YELLOW] — 1 expected dependency vulnerability detection
 - LLM07: 12/12 passed (ASR: 0.0%) [GREEN] — All plugin security controls effective
 - LLM10: 8/9 passed (ASR: 11.1%) [YELLOW] — 1 expected fingerprinting detection
@@ -421,6 +430,7 @@ python scripts/executor.py --target mock --category LLM08
 | `AgencyValidator` | LLM08 | Action authorization, credential exposure, privilege escalation, decision boundaries |
 
 **Week 4 Test Results (Mock)**:
+
 - LLM03: 11/11 passed (ASR: 0.0%) [GREEN] — All poisoning controls effective
 - LLM08: 12/12 passed (ASR: 0.0%) [GREEN] — All agency boundaries enforced
 
@@ -440,6 +450,7 @@ python scripts/executor.py --target mock --category LLM09
 | `OverrelianceValidator` | LLM09 | Unvalidated automation, hallucination acceptance, feedback loops, confidence thresholds |
 
 **Week 5 Test Results (Mock)**:
+
 - LLM09: 9/9 passed (ASR: 0.0%) [GREEN] — All overreliance controls effective
 
 ### Week 6 — Architecture, Validation & Release
@@ -458,12 +469,14 @@ cat 03_llm_security/09_release_report.md
 ```
 
 **Validation Results**:
+
 - [PASS] 10/10 categories covered with 3+ test cases each
 - [PASS] 116 test cases valid against TestCase schema
 - [PASS] 6 specialized validators integrated
 - [PASS] Overall ASR 4.31% (GREEN)
 
 **Release Artifacts**:
+
 - `03_llm_security/09_release_report.md` — Full architecture and release documentation
 - `scripts/validate_coverage.py` — Automated coverage validation script
 
@@ -497,11 +510,8 @@ python scripts/test_case_wizard.py
 ### Rollback Triggers
 
 | KPI | Threshold | Action |
-|-----|-----------|--------|
+| ----- | ----------- | -------- |
 | Attack Success Rate | > 15% | Block release, investigate failures |
 | Latency (p95) | > 2000ms | Review DoS protections |
 | Token Budget Violations | > 10% | Tighten output constraints |
 | Injection Detection Rate | < 80% | Improve pattern matching |
-
----
-*Last updated: 2026-05-18*
