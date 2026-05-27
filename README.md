@@ -1,3 +1,5 @@
+![QA Architect header](./images/github-header.png)
+
 # OWASP Top 10 for LLM — Security Test Suite
 
 A comprehensive security testing framework implementing the OWASP Top 10 for Large Language Model Applications. Built as an extension to the CORE QA Architecture framework.
