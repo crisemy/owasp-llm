@@ -318,12 +318,60 @@ owasp-llm/
 
 ## Architecture
 
-```bash
-Test Cases (JSONL) ──► Test Executor ──► Target LLM ──► Evaluation Engine
-                                                                    │
-                                                                    ▼
-                                              EvalRecord Results (JSONL) ──► KPI Dashboard
+### Four-Layer QA Architecture
+
+This project was built as an extension of the **CORE QA Architecture framework**, following all specifications defined across its four layers:
+
+```text
+ ┌─────────────────────────────────────────────────────────────────────┐
+ │             04_personal_tooling/   (QA Architect Toolkit)            │
+ │  Config · Rules · Skills · Templates · Workflows                    │
+ │  Provides: global context, QA/AI/Data rules, 12 skill definitions,  │
+ │  project templates, CI/regression/risk-based workflows              │
+ └─────────────────────────────────────────────────────────────────────┘
+                                    │ applies rules & workflows
+                                    ▼
+ ┌─────────────────────────────────────────────────────────────────────┐
+ │             02_operations/      (Operational Procedures)             │
+ │  Red Team Suite · Human Override Protocol · Rollback Procedure      │
+ │  Provides: security testing framework, escalation protocols,        │
+ │  automated rollback triggers based on KPI thresholds                │
+ └─────────────────────────────────────────────────────────────────────┘
+                                    │ governed by
+                                    ▼
+ ┌─────────────────────────────────────────────────────────────────────┐
+ │             01_fundamentals/    (Foundation & Contracts)             │
+ │  Data Contracts · KPI Governance · Risk Prioritization              │
+ │  Provides: 7 record type schemas, 20 KPI definitions, risk scoring  │
+ │  taxonomy and failure classification                                 │
+ └─────────────────────────────────────────────────────────────────────┘
+                                    │ implemented by
+                                    ▼
+ ┌─────────────────────────────────────────────────────────────────────┐
+ │ ┌─ 03_llm_security/ ─────────────────────────────────────────────┐  │
+ │ │  OWASP LLM Top 10 Security Test Suite   (THIS PROJECT)         │  │
+ │ │                                                                │  │
+ │ │  Test Registry (116 JSONL) ─► Executor ─► Target LLM           │  │
+ │ │                                          │                     │  │
+ │ │                                          ▼                     │  │
+ │ │                                    Evaluation Engine           │  │
+ │ │                                          │                     │  │
+ │ │                                          ▼                     │  │
+ │ │                              EvalRecord Results ─► KPI Summary │  │
+ │ └────────────────────────────────────────────────────────────────┘  │
+ └─────────────────────────────────────────────────────────────────────┘
 ```
+
+**How the layers connect:**
+
+| Layer | Role | How it governs this project |
+|-------|------|----------------------------|
+| `01_fundamentals/` | Foundation | `data_contracts.md` → `src/core/contracts.py` (Pydantic models). `kpi_governance.md` → ASR thresholds, release gating |
+| `02_operations/` | Procedures | `red_team_suite.md` → test execution methodology. `human_override_protocol.md` → manual escalation. `rollback_procedure.md` → CI pipeline auto-rollback |
+| `03_llm_security/` | **This project** | The OWASP LLM Top 10 test suite — test specs, metrics, coverage, architecture docs, release report |
+| `04_personal_tooling/` | Toolkit | Rules → QA/AI/data engineering practices. Skills → 12 competencies applied. Workflows → CI, regression, risk-based testing |
+
+This project (`03_llm_security/`) was implemented in full compliance with the specifications from all four layers — from the data contracts in `01_fundamentals/` through the operational protocols in `02_operations/`, leveraging the rules, skills, and workflows in `04_personal_tooling/`.
 
 ### Components
 
