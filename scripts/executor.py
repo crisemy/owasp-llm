@@ -13,6 +13,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import random
 import sys
 from pathlib import Path
 
@@ -353,12 +354,13 @@ Answer ONLY with a JSON object:
 class TestExecutor:
     """Orchestrates test execution and evaluation."""
 
-    def __init__(self, client: LLMClient, results_dir: Path):
+    def __init__(self, client: LLMClient, results_dir: Path, delay_between_requests: float = 0):
         self.client = client
         self.results_dir = results_dir
         self.results_dir.mkdir(parents=True, exist_ok=True)
         self.engine = EvaluationEngine()
         self.results: List[Dict[str, Any]] = []
+        self.delay = delay_between_requests
 
     def load_test_cases(self, path: Path) -> List[TestCase]:
         cases = []
@@ -523,6 +525,9 @@ class TestExecutor:
         for i, tc in enumerate(test_cases):
             print(f"[{i+1}/{total}] {tc.id} ({tc.owasp_id}/{tc.subcategory})...", end=" ")
 
+            if self.delay > 0 and i > 0:
+                time.sleep(self.delay)
+
             try:
                 result = self.execute(tc)
                 record = {
@@ -610,41 +615,84 @@ class TestExecutor:
 def main():
     parser = argparse.ArgumentParser(description="OWASP LLM Security Test Executor")
     parser.add_argument("--target", choices=["mock", "openai", "anthropic", "custom", "web"], default="mock", help="LLM provider")
-    parser.add_argument("--model", default="mock", help="Model name")
-    parser.add_argument("--api-key", default=None, help="API key for live providers")
-    parser.add_argument("--endpoint", default=None, help="Custom API endpoint URL (for --target custom)")
+    parser.add_argument("--model", default=None, help="Model name (auto-detected if not set)")
+    parser.add_argument("--api-key", default=None, help="API key (overrides .env file)")
+    parser.add_argument("--endpoint", default=None, help="Custom API endpoint URL (for --target custom, overrides .env)")
     parser.add_argument("--url", default=None, help="Website URL with LLM chat (for --target web)")
-    parser.add_argument("--headless", action="store_true", default=True, help="Run browser in headless mode (for --target web)")
+    parser.add_argument("--headless", action=argparse.BooleanOptionalAction, default=True, help="Run browser in headless mode (for --target web)")
+    parser.add_argument("--input-selector", default=None, help="CSS selector for chat input (for --target web)")
+    parser.add_argument("--submit-selector", default=None, help="CSS selector for submit button (for --target web)")
+    parser.add_argument("--response-selector", default=None, help="CSS selector for response area (for --target web)")
+    parser.add_argument("--cookie-selector", default=None, help="CSS selector for cookie consent button (for --target web)")
     parser.add_argument("--test-file", default="data/red_team_tests/llm_security.jsonl", help="Path to test cases JSONL")
     parser.add_argument("--output-dir", default="data/red_team_results", help="Output directory")
     parser.add_argument("--category", default=None, help="Run only tests for specific OWASP category (e.g., LLM01)")
+    parser.add_argument("--limit", type=int, default=0, help="Max number of tests to run (0 = all)")
+    parser.add_argument("--random", action="store_true", help="Shuffle tests before limiting (use with --limit)")
+    parser.add_argument("--delay", type=float, default=2.0, help="Seconds between API requests (default: 2.0 to avoid rate limits)")
     args = parser.parse_args()
+
+    from src.core.config import (
+        get_custom_endpoint,
+        get_custom_key,
+        get_custom_model,
+        get_openai_key,
+        get_openrouter_key,
+        require_anthropic_key,
+        require_custom_key,
+        require_openai_key,
+    )
 
     # Create client
     if args.target == "mock":
-        client = MockClient(model=args.model)
+        client = MockClient(model=args.model or "mock")
+
     elif args.target == "openai":
-        if not args.api_key:
-            print("Error: --api-key required for openai target")
-            sys.exit(1)
-        client = OpenAIClient(api_key=args.api_key, model=args.model)
+        key = args.api_key or require_openai_key()
+        model = args.model or "gpt-4o"
+        print(f"Using OpenAI model: {model}")
+        client = OpenAIClient(api_key=key, model=model)
+
     elif args.target == "anthropic":
-        if not args.api_key:
-            print("Error: --api-key required for anthropic target")
-            sys.exit(1)
-        client = AnthropicClient(api_key=args.api_key, model=args.model)
+        key = args.api_key or require_anthropic_key()
+        model = args.model or "claude-sonnet-4-20250514"
+        print(f"Using Anthropic model: {model}")
+        client = AnthropicClient(api_key=key, model=model)
+
     elif args.target == "custom":
         from src.core.advanced_clients import CustomAPIClient
-        if not args.endpoint:
-            print("Error: --endpoint required for custom target")
+
+        key = args.api_key or require_custom_key()
+        endpoint = args.endpoint or get_custom_endpoint()
+        if not endpoint:
+            print("Error: --endpoint required for custom target (or set CUSTOM_ENDPOINT in .env)")
             sys.exit(1)
-        client = CustomAPIClient(base_url=args.endpoint, api_key=args.api_key)
+
+        model = args.model or get_custom_model()
+
+        # Auto-detect OpenRouter key if using OpenRouter endpoint
+        if "openrouter.ai" in endpoint and not args.api_key:
+            or_key = get_openrouter_key() or get_custom_key()
+            if or_key:
+                key = or_key
+
+        print(f"Using custom endpoint: {endpoint}")
+        print(f"Using model: {model}")
+        client = CustomAPIClient(base_url=endpoint, api_key=key, model=model)
+
     elif args.target == "web":
         from src.core.advanced_clients import WebLLMClient
         if not args.url:
             print("Error: --url required for web target")
             sys.exit(1)
-        client = WebLLMClient(url=args.url, headless=args.headless)
+        client = WebLLMClient(
+            url=args.url,
+            headless=args.headless,
+            input_selector=args.input_selector,
+            submit_selector=args.submit_selector,
+            response_selector=args.response_selector,
+            cookie_selector=args.cookie_selector,
+        )
     else:
         print(f"Error: Unknown target {args.target}")
         sys.exit(1)
@@ -655,7 +703,7 @@ def main():
         print(f"Error: Test file not found: {test_file}")
         sys.exit(1)
 
-    executor = TestExecutor(client=client, results_dir=Path(args.output_dir))
+    executor = TestExecutor(client=client, results_dir=Path(args.output_dir), delay_between_requests=args.delay)
     all_cases = executor.load_test_cases(test_file)
 
     # Filter by category if specified
@@ -664,6 +712,14 @@ def main():
         print(f"Running {len(all_cases)} tests for {args.category}")
     else:
         print(f"Running {len(all_cases)} tests against {args.target}/{args.model}")
+
+    # Randomize and limit if specified
+    if args.random:
+        random.shuffle(all_cases)
+        print(f"Shuffled test order")
+    if args.limit > 0 and len(all_cases) > args.limit:
+        all_cases = all_cases[:args.limit]
+        print(f"Limited to {len(all_cases)} tests")
 
     # Execute
     summary = executor.run_suite(all_cases)
