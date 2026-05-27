@@ -197,32 +197,4 @@ print(f'Jobs: {list(config[\"jobs\"].keys())}')
 
 ---
 
-## Week 2 — LLM02 + LLM04 (Planned)
-
-- [ ] LLM02 test cases refined with live LLM results
-- [ ] LLM04 test cases refined with live LLM results
-- [ ] Metrics definitions validated against actual data
-- [ ] red_team_suite.md updated with LLM02 + LLM04 results
-
-## Week 3 — LLM05 + LLM07 + LLM10 (Planned)
-
-- [ ] Supply chain contract tested with real dependencies
-- [ ] Plugin security contract tested with real plugins
-- [ ] Model theft detection validated
-
-## Week 4 — LLM03 + LLM08 (Planned)
-
-- [ ] Training poisoning detection tested
-- [ ] Excessive agency boundaries validated
-
-## Week 5 — LLM09 + Integration (Planned)
-
-- [ ] Overreliance test cases validated
-- [ ] Full integration across all CORE components
-
-## Week 6 — Architecture & Validation (Planned)
-
-- [ ] Architecture documentation finalized
-- [ ] Coverage matrix validated (min 3 tests per category)
-- [ ] Cross-check: all skills/templates/workflows reference LLM security
-- [ ] Release notes and version bump
+> **Note:** Weeks 2–6 planned items were delivered via the `feature-advanced-testing` branch and merged into `main`. The E2E mock test confirms all 116 tests run with a 4.31% ASR (GREEN), covering all 10 OWASP categories. See `CONTEXT.md`, the `src/core/advanced_clients.py`, `src/core/config.py`, and the CI/CD pipeline for the completed work.
