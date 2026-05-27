@@ -365,7 +365,7 @@ This project was built as an extension of the **CORE QA Architecture framework**
 **How the layers connect:**
 
 | Layer | Role | How it governs this project |
-|-------|------|----------------------------|
+| ------- | ------ | ---------------------------- |
 | `01_fundamentals/` | Foundation | `data_contracts.md` → `src/core/contracts.py` (Pydantic models). `kpi_governance.md` → ASR thresholds, release gating |
 | `02_operations/` | Procedures | `red_team_suite.md` → test execution methodology. `human_override_protocol.md` → manual escalation. `rollback_procedure.md` → CI pipeline auto-rollback |
 | `03_llm_security/` | **This project** | The OWASP LLM Top 10 test suite — test specs, metrics, coverage, architecture docs, release report |
@@ -563,3 +563,20 @@ python scripts/test_case_wizard.py
 | Latency (p95) | > 2000ms | Review DoS protections |
 | Token Budget Violations | > 10% | Tighten output constraints |
 | Injection Detection Rate | < 80% | Improve pattern matching |
+
+```
+
+# Author
+
+Cristian N.
+
+- QA Engineer with 20+ years of experience in software testing and automation.
+- MSc Candidate in Data Science & Artificial Intelligence.
+
+Research interests include:
+
+* Experimental QA engineering
+* QA Architecture
+* Reliability testing
+* AI-assisted quality assurance
+* Data-driven software stability analysis
