@@ -5,6 +5,9 @@ env/
 __pycache__/
 *.pyc
 
+# Secrets
+.env
+
 # Testing
 .pytest_cache/
 .coverage
@@ -39,3 +42,6 @@ logs/
 # Temp
 *.tmp
 *.log
+
+# Personal 
+linkedin-speach.md

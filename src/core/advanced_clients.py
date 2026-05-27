@@ -44,12 +44,13 @@ from src.core.contracts import TestCase
 class CustomAPIClient:
     """Test any REST API that accepts prompts and returns text responses.
 
-    Supports common API patterns:
-      - OpenAI-compatible endpoints
-      - Custom JSON payloads
-      - Custom header authentication
-      - Custom response parsing
+    Auto-detects API format from the endpoint URL:
+      - OpenRouter / OpenAI-compatible: uses messages array format
+      - Anthropic: uses messages API format
+      - Custom: uses raw prompt field
     """
+
+    OPENAI_COMPATIBLE_DOMAINS = ["openrouter.ai", "api.openai.com", "localhost", "127.0.0.1"]
 
     def __init__(
         self,
@@ -60,6 +61,8 @@ class CustomAPIClient:
         response_field: str = "response",
         system_prompt_field: Optional[str] = None,
         timeout: int = 30,
+        model: Optional[str] = None,
+        api_format: Optional[str] = None,
     ):
         import requests
 
@@ -70,42 +73,100 @@ class CustomAPIClient:
         self.response_field = response_field
         self.system_prompt_field = system_prompt_field
         self.timeout = timeout
+        self.model = model or "openai/gpt-4o"
+
+        # Auto-detect API format from URL
+        if api_format:
+            self.api_format = api_format
+        elif any(domain in base_url.lower() for domain in self.OPENAI_COMPATIBLE_DOMAINS):
+            self.api_format = "openai"
+        elif "anthropic" in base_url.lower():
+            self.api_format = "anthropic"
+        else:
+            self.api_format = "custom"
 
         if api_key:
-            self.headers["Authorization"] = f"Bearer {api_key}"
+            if self.api_format == "anthropic":
+                self.headers["x-api-key"] = api_key
+                self.headers["anthropic-version"] = "2023-06-01"
+            else:
+                self.headers["Authorization"] = f"Bearer {api_key}"
 
     def generate(self, prompt: str, system_prompt: Optional[str] = None, **kwargs) -> Dict[str, Any]:
-        payload = {self.prompt_field: prompt}
+        if self.api_format == "openai":
+            payload = self._build_openai_payload(prompt, system_prompt, **kwargs)
+        elif self.api_format == "anthropic":
+            payload = self._build_anthropic_payload(prompt, system_prompt, **kwargs)
+        else:
+            payload = self._build_custom_payload(prompt, system_prompt, **kwargs)
 
-        if system_prompt and self.system_prompt_field:
-            payload[self.system_prompt_field] = system_prompt
+        max_retries = 3
+        retry_delay = 2  # seconds
 
-        # Merge any additional kwargs
-        for key, value in kwargs.items():
-            if key not in (prompt_field, "system_prompt"):
-                payload[key] = value
+        for attempt in range(max_retries):
+            start = time.time()
+            resp = self.requests.post(
+                self.base_url,
+                json=payload,
+                headers=self.headers,
+                timeout=self.timeout,
+            )
+            latency_ms = int((time.time() - start) * 1000)
 
-        start = time.time()
-        resp = self.requests.post(
-            self.base_url,
-            json=payload,
-            headers=self.headers,
-            timeout=self.timeout,
-        )
-        latency_ms = int((time.time() - start) * 1000)
-        resp.raise_for_status()
+            if resp.status_code == 429:
+                wait = retry_delay * (2 ** attempt)
+                print(f"Rate limited. Waiting {wait}s before retry {attempt+1}/{max_retries}...")
+                time.sleep(wait)
+                continue
+
+            if resp.status_code == 401:
+                raise RuntimeError(f"401 Unauthorized — check your API key. URL: {self.base_url}")
+
+            resp.raise_for_status()
+            break
+        else:
+            raise RuntimeError(f"Rate limited after {max_retries} retries. Try a paid model or wait.")
 
         data = resp.json()
-
-        # Support nested response paths like data.choices[0].message.content
         response_text = self._extract_response(data)
 
         return {
             "response_text": response_text,
             "latency_ms": latency_ms,
-            "token_count": data.get("token_count", len(response_text.split())),
-            "finish_reason": data.get("finish_reason", "stop"),
+            "token_count": data.get("usage", {}).get("completion_tokens", len(response_text.split())),
+            "finish_reason": data.get("choices", [{}])[0].get("finish_reason", "stop"),
         }
+
+    def _build_openai_payload(self, prompt: str, system_prompt: Optional[str], **kwargs) -> dict:
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+
+        return {
+            "model": self.model,
+            "messages": messages,
+            **{k: v for k, v in kwargs.items() if k in ("temperature", "max_tokens", "top_p", "frequency_penalty")},
+        }
+
+    def _build_anthropic_payload(self, prompt: str, system_prompt: Optional[str], **kwargs) -> dict:
+        payload = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": kwargs.get("max_tokens", 1024),
+        }
+        if system_prompt:
+            payload["system"] = system_prompt
+        return payload
+
+    def _build_custom_payload(self, prompt: str, system_prompt: Optional[str], **kwargs) -> dict:
+        payload = {self.prompt_field: prompt}
+        if system_prompt and self.system_prompt_field:
+            payload[self.system_prompt_field] = system_prompt
+        for key, value in kwargs.items():
+            if key not in ("system_prompt",):
+                payload[key] = value
+        return payload
 
     def _extract_response(self, data: dict) -> str:
         """Extract response text from various API response formats."""
@@ -153,6 +214,7 @@ class WebLLMClient:
         input_selector: Optional[str] = None,
         submit_selector: Optional[str] = None,
         response_selector: Optional[str] = None,
+        cookie_selector: Optional[str] = None,
         wait_timeout: int = 10000,
     ):
         from playwright.sync_api import sync_playwright
@@ -162,18 +224,25 @@ class WebLLMClient:
         self.input_selector = input_selector
         self.submit_selector = submit_selector
         self.response_selector = response_selector
+        self.cookie_selector = cookie_selector
         self.wait_timeout = wait_timeout
         self.playwright = sync_playwright().start()
         self.browser = self.playwright.chromium.launch(headless=headless)
         self.context = self.browser.new_context()
         self.page = self.context.new_page()
-        self.page.goto(url, wait_until="domcontentloaded")
+        self.page.goto(url, wait_until="load")
+        self.page.evaluate("() => { localStorage.clear(); sessionStorage.clear(); }")
+        self.context.clear_cookies()
+        self.page.reload(wait_until="load")
+        self._dismiss_cookies()
         self._auto_detect_selectors()
+        self._ensure_selectors()
 
     def _auto_detect_selectors(self):
-        """Auto-detect common chat UI selectors."""
+        """Auto-detect common chat UI selectors, waiting for JS-rendered elements."""
+        from playwright.sync_api import TimeoutError as PlaywrightTimeout
+
         if not self.input_selector:
-            # Try common input selectors
             selectors = [
                 "textarea",
                 "input[type='text']",
@@ -182,11 +251,15 @@ class WebLLMClient:
                 "#message-input",
                 ".chat-input textarea",
                 "[data-testid='chat-input']",
+                "div[contenteditable='true']",
             ]
             for sel in selectors:
-                if self.page.query_selector(sel):
-                    self.input_selector = sel
-                    break
+                try:
+                    if self.page.wait_for_selector(sel, timeout=3000):
+                        self.input_selector = sel
+                        break
+                except PlaywrightTimeout:
+                    continue
 
         if not self.submit_selector:
             selectors = [
@@ -196,11 +269,16 @@ class WebLLMClient:
                 ".submit-btn",
                 "button:has-text('Send')",
                 "button:has-text('Submit')",
+                "button:has-text('→')",
+                "svg[data-testid='send-icon']",
             ]
             for sel in selectors:
-                if self.page.query_selector(sel):
-                    self.submit_selector = sel
-                    break
+                try:
+                    if self.page.wait_for_selector(sel, timeout=3000):
+                        self.submit_selector = sel
+                        break
+                except PlaywrightTimeout:
+                    continue
 
         if not self.response_selector:
             selectors = [
@@ -210,11 +288,82 @@ class WebLLMClient:
                 ".chat-message:last-child",
                 "[data-testid='response']",
                 ".prose",
+                ".message",
+                "[class*='message']",
+                "[class*='response']",
             ]
             for sel in selectors:
-                if self.page.query_selector(sel):
-                    self.response_selector = sel
-                    break
+                try:
+                    if self.page.wait_for_selector(sel, timeout=3000):
+                        self.response_selector = sel
+                        break
+                except PlaywrightTimeout:
+                    continue
+
+    def _dismiss_cookies(self):
+        """Dismiss cookie/consent banners automatically or via explicit selector."""
+        from playwright.sync_api import TimeoutError as PlaywrightTimeout
+
+        if self.cookie_selector:
+            try:
+                btn = self.page.wait_for_selector(self.cookie_selector, timeout=5000)
+                btn.click()
+                self.page.wait_for_timeout(500)
+                return
+            except PlaywrightTimeout:
+                return
+
+        selectors = [
+            "button:has-text('Accept')",
+            "button:has-text('Accept All')",
+            "button:has-text('Accept Cookies')",
+            "button:has-text('Allow')",
+            "button:has-text('I agree')",
+            "button:has-text('Got it')",
+            "button:has-text('Agree')",
+            "button:has-text('Allow All')",
+            "#cookies-accept",
+            ".cookie-accept",
+            "[aria-label*='cookie']",
+            "[aria-label*='Cookie']",
+            "#cookies-btn",
+            ".cookies-button",
+            "#consent-accept",
+        ]
+        for sel in selectors:
+            try:
+                btn = self.page.wait_for_selector(sel, timeout=1000)
+                if btn:
+                    btn.click()
+                    self.page.wait_for_timeout(500)
+                    return
+            except PlaywrightTimeout:
+                continue
+
+    def _ensure_selectors(self):
+        """Raise a clear error if essential selectors weren't auto-detected, with debug info."""
+        missing = []
+        if not self.input_selector:
+            missing.append("input_selector")
+        if not self.submit_selector:
+            missing.append("submit_selector")
+        if missing:
+            print("\n--- Available page elements ---")
+            print("INPUTS/TEXTAREAS:")
+            for el in self.page.query_selector_all("input, textarea, [contenteditable='true']"):
+                attrs = el.evaluate("e => ({ tag: e.tagName, type: e.type, id: e.id, class: e.className, placeholder: e.placeholder, name: e.name })")
+                print(f"  <{attrs['tag']}> id='{attrs['id']}' class='{attrs['class']}' placeholder='{attrs['placeholder']}' name='{attrs['name']}'")
+            print("BUTTONS:")
+            for el in self.page.query_selector_all("button, [role='button'], input[type='submit']"):
+                text = el.evaluate("e => e.innerText || e.value || ''").strip()[:40]
+                attrs = el.evaluate("e => ({ tag: e.tagName, id: e.id, class: e.className })")
+                print(f"  <{attrs['tag']}> '{text}' id='{attrs['id']}' class='{attrs['class']}'")
+            print("---")
+            self.close()
+            raise RuntimeError(
+                f"Could not auto-detect {' and '.join(missing)} on {self.url}.\n"
+                f"Use --input-selector and/or --submit-selector with values from the list above."
+            )
 
     def generate(self, prompt: str, system_prompt: Optional[str] = None, **kwargs) -> Dict[str, Any]:
         from playwright.sync_api import TimeoutError as PlaywrightTimeout
@@ -231,8 +380,12 @@ class WebLLMClient:
             submit_el.click()
 
             # Wait for response
-            response_el = self.page.wait_for_selector(self.response_selector, timeout=self.wait_timeout)
-            response_text = response_el.inner_text()
+            if self.response_selector:
+                response_el = self.page.wait_for_selector(self.response_selector, timeout=self.wait_timeout)
+                response_text = response_el.inner_text()
+            else:
+                self.page.wait_for_timeout(3000)
+                response_text = self.page.inner_text("body")
 
             latency_ms = int((time.time() - start) * 1000)
 

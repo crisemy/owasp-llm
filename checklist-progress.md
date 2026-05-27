@@ -3,6 +3,7 @@
 ## Week 1 — Research & Foundation
 
 ### Environment Setup
+
 - [x] Python virtual environment created (`.venv`)
 - [x] Dependencies installed (`pydantic>=2.0`)
 - [x] Git repository initialized
@@ -10,6 +11,7 @@
 - [x] `pyproject.toml` created
 
 ### Documentation Audit
+
 - [x] All 51 .md files reviewed and cross-referenced
 - [x] 8 audit issues resolved (C1-C5, M1, M3, L1)
 - [x] Redundant root `red_team_suite.md` deleted
@@ -17,6 +19,7 @@
 - [x] `.gitignore` fixed (removed plan file exclusion)
 
 ### Contracts Implementation
+
 - [x] `src/core/contracts.py` — Pydantic models for all 7 record types
 - [x] `EvalRecord`, `ResponseRecord`, `PromptRecord`, `RiskRecord`, `OverrideRecord`
 - [x] `SupplyChainContract`, `PluginSecurityContract`
@@ -25,11 +28,13 @@
 - [x] Field constraints and validators implemented
 
 ### Test Registry
+
 - [x] `data/red_team_tests/llm_security.jsonl` — 116 test cases generated
 - [x] All test cases validated against `TestCase` Pydantic schema (0 errors)
 - [x] Coverage: LLM01(15), LLM02(13), LLM03(11), LLM04(11), LLM05(12), LLM06(12), LLM07(12), LLM08(12), LLM09(9), LLM10(9)
 
 ### Test Executor
+
 - [x] `scripts/executor.py` — Test executor implemented
 - [x] MockClient — deterministic mock for local testing
 - [x] OpenAIClient — live OpenAI API integration
@@ -40,12 +45,14 @@
 - [x] CLI with --target, --model, --api-key, --category, --test-file, --output-dir
 
 ### CI/CD
+
 - [x] `.github/workflows/security-tests.yml` — GitHub Actions pipeline
 - [x] Blocks PRs if ASR > 15%, warns at > 5%
 - [x] Uploads results as artifacts (30-day retention)
 - [x] Publishes summary to GitHub Step Summary
 
 ### Documentation
+
 - [x] `README.md` — project overview, setup, run instructions, structure
 - [x] `checklist-progress.md` — this file
 - [x] `02_operations/rollback_procedure.md` — placeholders replaced with real KPI thresholds
@@ -56,6 +63,7 @@
 ## Certification Steps
 
 ### 1. Environment Certification
+
 ```bash
 # Verify Python version
 python --version                    # Expected: 3.12.x
@@ -69,6 +77,7 @@ pip install -e ".[dev]"             # Should succeed
 ```
 
 ### 2. Contract Certification
+
 ```bash
 # Verify all contracts import without errors
 python -c "from src.core.contracts import *; print('All contracts OK')"
@@ -82,6 +91,7 @@ print('EvalRecordOutput fields:', list(EvalRecordOutput.model_fields.keys()))
 ```
 
 ### 3. Test Registry Certification
+
 ```bash
 # Count test cases
 python -c "
@@ -106,6 +116,7 @@ print(f'Valid test cases: {valid}')
 ```
 
 ### 4. Executor Certification (Mock)
+
 ```bash
 # Run full suite
 python scripts/executor.py --target mock --model test
@@ -136,6 +147,7 @@ print(f'Categories: {len(s[\"results_by_category\"])}')
 ```
 
 ### 5. Executor Certification (Live — Optional)
+
 ```bash
 # Requires API key
 python scripts/executor.py --target openai --model gpt-4o --api-key $OPENAI_API_KEY
@@ -154,6 +166,7 @@ print(f'Eval method: {first[\"eval_method\"]}')
 ```
 
 ### 6. Category Coverage Certification
+
 ```bash
 # Verify all 10 OWASP categories are covered
 python -c "
@@ -169,6 +182,7 @@ print(f'Total categories: {len(cats)} (expected: 10)')
 ```
 
 ### 7. CI Pipeline Certification
+
 ```bash
 # Validate YAML syntax (requires yq or python)
 python -c "
@@ -184,29 +198,31 @@ print(f'Jobs: {list(config[\"jobs\"].keys())}')
 ---
 
 ## Week 2 — LLM02 + LLM04 (Planned)
+
 - [ ] LLM02 test cases refined with live LLM results
 - [ ] LLM04 test cases refined with live LLM results
 - [ ] Metrics definitions validated against actual data
 - [ ] red_team_suite.md updated with LLM02 + LLM04 results
 
 ## Week 3 — LLM05 + LLM07 + LLM10 (Planned)
+
 - [ ] Supply chain contract tested with real dependencies
 - [ ] Plugin security contract tested with real plugins
 - [ ] Model theft detection validated
 
 ## Week 4 — LLM03 + LLM08 (Planned)
+
 - [ ] Training poisoning detection tested
 - [ ] Excessive agency boundaries validated
 
 ## Week 5 — LLM09 + Integration (Planned)
+
 - [ ] Overreliance test cases validated
 - [ ] Full integration across all CORE components
 
 ## Week 6 — Architecture & Validation (Planned)
+
 - [ ] Architecture documentation finalized
 - [ ] Coverage matrix validated (min 3 tests per category)
 - [ ] Cross-check: all skills/templates/workflows reference LLM security
 - [ ] Release notes and version bump
-
----
-*Last updated: 2026-05-18*
